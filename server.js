@@ -3,89 +3,184 @@ const http = require("http");
 const { Server } = require("socket.io");
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server);
+
+const server =
+    http.createServer(app);
+
+const io =
+    new Server(server);
 
 app.use(express.static("public"));
 
 const players = {};
 
-const monsters = [
-    {
-        id: 1,
-        name: "สไลม์",
-        hp: 30,
-        maxHp: 30,
-        atk: 3,
-        gold: 10,
-        exp: 5
+const places = {
+
+    slime_field: {
+        name: "🟢 ทุ่งสไลม์",
+        type: "monster",
+        monsters: [
+            {
+                id: 1,
+                name: "สไลม์",
+                hp: 30,
+                maxHp: 30,
+                gold: 10,
+                exp: 5
+            }
+        ]
     },
-    {
-        id: 2,
-        name: "ก็อบลิน",
-        hp: 60,
-        maxHp: 60,
-        atk: 6,
-        gold: 20,
-        exp: 10
+
+    goblin_forest: {
+        name: "🌲 ป่าก็อบลิน",
+        type: "monster",
+        monsters: [
+            {
+                id: 2,
+                name: "ก็อบลิน",
+                hp: 60,
+                maxHp: 60,
+                gold: 20,
+                exp: 10
+            }
+        ]
+    },
+
+    dungeon: {
+        name: "🏰 ดันเจี้ยน",
+        type: "monster",
+        monsters: [
+            {
+                id: 3,
+                name: "อัศวินต้องสาป",
+                hp: 120,
+                maxHp: 120,
+                gold: 50,
+                exp: 30
+            }
+        ]
+    },
+
+    market: {
+        name: "🛒 ตลาด",
+        type: "market"
     }
-];
+
+};
 
 io.on("connection", (socket) => {
 
     players[socket.id] = {
-        id: socket.id,
+
         name: "ผู้เล่น",
+
         level: 1,
+
         exp: 0,
+
         gold: 0,
+
         hp: 100,
+
         maxHp: 100,
+
         atk: 10
+
     };
 
-    socket.emit("player_data", players[socket.id]);
-    socket.emit("monster_list", monsters);
+    socket.emit(
+        "player_data",
+        players[socket.id]
+    );
 
-    socket.on("attack_monster", (monsterId) => {
+    socket.emit(
+        "place_data",
+        places.slime_field
+    );
 
-        const player = players[socket.id];
+    socket.on(
+        "go_place",
+        (place) => {
 
-        const monster =
-            monsters.find(m => m.id === monsterId);
+            socket.emit(
+                "place_data",
+                places[place]
+            );
 
-        if (!monster) return;
+        }
+    );
 
-        monster.hp -= player.atk;
+    socket.on(
+        "attack_monster",
+        (data) => {
 
-        if (monster.hp <= 0) {
+            const player =
+                players[socket.id];
 
-            player.gold += monster.gold;
-            player.exp += monster.exp;
+            const place =
+                places[data.place];
 
-            if (player.exp >= 20) {
-                player.level++;
-                player.exp = 0;
-                player.maxHp += 20;
-                player.hp = player.maxHp;
-                player.atk += 5;
+            if(!place) return;
+
+            const monster =
+                place.monsters.find(
+                    m => m.id === data.monsterId
+                );
+
+            if(!monster) return;
+
+            monster.hp -= player.atk;
+
+            if(monster.hp <= 0){
+
+                player.gold += monster.gold;
+                player.exp += monster.exp;
+
+                monster.hp =
+                    monster.maxHp;
+
             }
 
-            monster.hp = monster.maxHp;
+            socket.emit(
+                "player_data",
+                player
+            );
+
+            socket.emit(
+                "place_data",
+                place
+            );
+
         }
+    );
 
-        socket.emit("player_data", player);
+    socket.on(
+        "buy_sword",
+        () => {
 
-        io.emit("monster_list", monsters);
+            const player =
+                players[socket.id];
 
-    });
+            if(player.gold < 50)
+                return;
 
-    socket.on("disconnect", () => {
-        delete players[socket.id];
-    });
+            player.gold -= 50;
+            player.atk += 5;
+
+            socket.emit(
+                "player_data",
+                player
+            );
+
+        }
+    );
 
 });
 
 server.listen(3000, () => {
-    console.log("Server running");
+
+    console.log(
+        "Server running"
+    );
+
 });
