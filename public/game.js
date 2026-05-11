@@ -3,48 +3,116 @@ const socket = io();
 const playerDiv =
     document.getElementById("player");
 
-const monsterDiv =
-    document.getElementById("monsters");
+const contentDiv =
+    document.getElementById("content");
+
+const locationName =
+    document.getElementById("locationName");
+
+let currentPlace = "slime_field";
 
 socket.on("player_data", (player) => {
 
     playerDiv.innerHTML = `
-        <p>เลเวล: ${player.level}</p>
-        <p>HP: ${player.hp}/${player.maxHp}</p>
-        <p>ATK: ${player.atk}</p>
-        <p>EXP: ${player.exp}</p>
-        <p>Gold: ${player.gold}</p>
+        <p>👤 ${player.name}</p>
+
+        <p>⭐ เลเวล ${player.level}</p>
+
+        <p>
+        ❤️ ${player.hp}/${player.maxHp}
+        </p>
+
+        <p>⚔ ${player.atk}</p>
+
+        <p>✨ EXP ${player.exp}</p>
+
+        <p>🪙 ${player.gold}</p>
     `;
 
 });
 
-socket.on("monster_list", (monsters) => {
+socket.on("place_data", (data) => {
 
-    monsterDiv.innerHTML = "";
+    locationName.innerText =
+        data.name;
 
-    monsters.forEach(monster => {
+    contentDiv.innerHTML = "";
 
-        const div =
-            document.createElement("div");
+    if(data.type === "monster"){
 
-        div.className = "monster";
+        data.monsters.forEach(monster => {
 
-        div.innerHTML = `
-            <h3>${monster.name}</h3>
-            <p>HP:
-            ${monster.hp}/${monster.maxHp}</p>
+            const div =
+                document.createElement("div");
 
-            <button onclick="attack(${monster.id})">
-                ตี
-            </button>
+            div.className = "monster";
+
+            div.innerHTML = `
+                <h3>${monster.name}</h3>
+
+                <p>
+                ❤️ ${monster.hp}/${monster.maxHp}
+                </p>
+
+                <button
+                onclick="attack(${monster.id})">
+
+                    ⚔ โจมตี
+
+                </button>
+            `;
+
+            contentDiv.appendChild(div);
+
+        });
+
+    }
+
+    if(data.type === "market"){
+
+        contentDiv.innerHTML = `
+            <div class="monster">
+
+                <h3>🛒 ร้านค้า</h3>
+
+                <p>ดาบไม้ +5 ATK</p>
+
+                <button onclick="buySword()">
+                    ซื้อ 50 Gold
+                </button>
+
+            </div>
         `;
 
-        monsterDiv.appendChild(div);
-
-    });
+    }
 
 });
 
+function goPlace(place){
+
+    currentPlace = place;
+
+    socket.emit(
+        "go_place",
+        place
+    );
+
+}
+
 function attack(id){
-    socket.emit("attack_monster", id);
+
+    socket.emit(
+        "attack_monster",
+        {
+            place: currentPlace,
+            monsterId: id
+        }
+    );
+
+}
+
+function buySword(){
+
+    socket.emit("buy_sword");
+
 }
