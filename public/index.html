@@ -16,19 +16,77 @@ href="style.css">
 
 <h1>⚔ Mini RPG</h1>
 
-<div class="card">
+<div class="layout">
 
-    <h2>ผู้เล่น</h2>
+    <div class="left">
 
-    <div id="player"></div>
+        <div class="card">
 
-</div>
+            <h2>ผู้เล่น</h2>
 
-<div class="card">
+            <div id="player"></div>
 
-    <h2>มอนสเตอร์</h2>
+        </div>
 
-    <div id="monsters"></div>
+        <div class="card">
+
+            <h2>สถานที่</h2>
+
+            <div class="map">
+
+                <button
+                class="place"
+                onclick="goPlace('slime_field')">
+
+                    🟢 ทุ่งสไลม์
+
+                </button>
+
+                <button
+                class="place"
+                onclick="goPlace('goblin_forest')">
+
+                    🌲 ป่าก็อบลิน
+
+                </button>
+
+                <button
+                class="place"
+                onclick="goPlace('dungeon')">
+
+                    🏰 ดันเจี้ยน
+
+                </button>
+
+                <button
+                class="place"
+                onclick="goPlace('market')">
+
+                    🛒 ตลาด
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="right">
+
+        <div class="card">
+
+            <h2 id="locationName">
+
+                ทุ่งสไลม์
+
+            </h2>
+
+            <div id="content"></div>
+
+        </div>
+
+    </div>
 
 </div>
 
