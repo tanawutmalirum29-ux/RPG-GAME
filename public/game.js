@@ -32,6 +32,19 @@ const marketItems = {
         price: 150,
         atk: 15
     },
+leather_armor: {
+    id: "leather_armor",
+    name: "ชุดหนัง",
+    price: 120,
+    hp: 30
+},
+
+ring: {
+    id: "ring",
+    name: "แหวนพลัง",
+    price: 200,
+    atk: 3
+},
 
     potion: {
         id: "potion",
