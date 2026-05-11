@@ -1,0 +1,29 @@
+body{
+    background:#111827;
+    color:white;
+    font-family:sans-serif;
+    padding:20px;
+}
+
+.card{
+    background:#1f2937;
+    padding:20px;
+    border-radius:16px;
+    margin-bottom:20px;
+}
+
+.monster{
+    background:#374151;
+    padding:12px;
+    border-radius:12px;
+    margin-top:10px;
+}
+
+button{
+    padding:10px 16px;
+    border:none;
+    border-radius:10px;
+    background:#2563eb;
+    color:white;
+    cursor:pointer;
+}
