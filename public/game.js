@@ -17,39 +17,61 @@ const locationName =
 
 let currentPlace = "slime_field";
 
+
 const marketItems = {
 
     wood_sword: {
         id: "wood_sword",
+        type: "weapon",
+
         name: "ดาบไม้",
+
         price: 50,
+
         atk: 5
     },
 
     iron_sword: {
         id: "iron_sword",
+        type: "weapon",
+
         name: "ดาบเหล็ก",
+
         price: 150,
+
         atk: 15
     },
-leather_armor: {
-    id: "leather_armor",
-    name: "ชุดหนัง",
-    price: 120,
-    hp: 30
-},
 
-ring: {
-    id: "ring",
-    name: "แหวนพลัง",
-    price: 200,
-    atk: 3
-},
+    leather_armor: {
+        id: "leather_armor",
+        type: "armor",
+
+        name: "ชุดหนัง",
+
+        price: 120,
+
+        hp: 30
+    },
+
+    ring: {
+        id: "ring",
+        type: "accessory",
+
+        name: "แหวนพลัง",
+
+        price: 200,
+
+        atk: 3
+    },
 
     potion: {
         id: "potion",
+        type: "usable",
+
         name: "ยาฟื้นฟู",
+
         price: 30,
+
         heal: 50
     }
 
