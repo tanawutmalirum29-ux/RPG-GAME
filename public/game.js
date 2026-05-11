@@ -5,9 +5,15 @@ const playerDiv =
 
 const contentDiv =
     document.getElementById("content");
+const inventoryDiv =
+    document.getElementById(
+        "inventory"
+    );
 
 const locationName =
     document.getElementById("locationName");
+
+
 
 let currentPlace = "slime_field";
 
@@ -49,12 +55,121 @@ socket.on("player_data", (player) => {
 
         <p>⚔ ${player.atk}</p>
 
-        <p>✨ EXP ${player.exp}</p>
-
         <p>🪙 ${player.gold}</p>
+
+        <p>
+🗡 อาวุธ:
+${
+player.equipment.weapon
+?
+marketItems[
+player.equipment.weapon
+].name
+:
+"ไม่มี"
+}
+</p>
+
+<p>
+🛡 ชุด:
+${
+player.equipment.armor
+?
+marketItems[
+player.equipment.armor
+].name
+:
+"ไม่มี"
+}
+</p>
+
+<p>
+💍 ประดับ:
+${
+player.equipment.accessory
+?
+marketItems[
+player.equipment.accessory
+].name
+:
+"ไม่มี"
+}
+</p>
     `;
 
+    inventoryDiv.innerHTML = "";
+
+    player.inventory.forEach(itemId => {
+
+        const item =
+            marketItems[itemId];
+
+        const div =
+            document.createElement("div");
+
+        div.className = "monster";
+
+        let buttons = "";
+
+        if(item.atk){
+
+            buttons += `
+                <button
+                onclick="equipItem(
+                    '${item.id}'
+                )">
+
+                    สวมใส่
+
+                </button>
+            `;
+
+        }
+
+        if(item.heal){
+
+            buttons += `
+                <button
+                onclick="useItem(
+                    '${item.id}'
+                )">
+
+                    ใช้
+
+                </button>
+            `;
+
+        }
+
+        div.innerHTML = `
+            <h3>${item.name}</h3>
+
+            ${buttons}
+        `;
+
+        inventoryDiv.appendChild(div);
+
+    });
+
 });
+
+function equipItem(id){
+
+    socket.emit(
+        "equip_item",
+        id
+    );
+
+}
+
+function useItem(id){
+
+    socket.emit(
+        "use_item",
+        id
+    );
+
+}
 
 socket.on("place_data", (data) => {
 
