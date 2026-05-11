@@ -14,6 +14,31 @@ app.use(express.static("public"));
 
 const players = {};
 
+const items = {
+
+    wood_sword: {
+        id: "wood_sword",
+        name: "ดาบไม้",
+        price: 50,
+        atk: 5
+    },
+
+    iron_sword: {
+        id: "iron_sword",
+        name: "ดาบเหล็ก",
+        price: 150,
+        atk: 15
+    },
+
+    potion: {
+        id: "potion",
+        name: "ยาฟื้นฟู",
+        price: 30,
+        heal: 50
+    }
+
+};
+
 const places = {
 
     slime_field: {
@@ -62,9 +87,15 @@ const places = {
     },
 
     market: {
-        name: "🛒 ตลาด",
-        type: "market"
-    }
+    name: "🛒 ตลาด",
+    type: "market",
+
+    items: [
+        "wood_sword",
+        "iron_sword",
+        "potion"
+    ]
+}
 
 };
 
@@ -72,21 +103,23 @@ io.on("connection", (socket) => {
 
     players[socket.id] = {
 
-        name: "ผู้เล่น",
+    name: "ผู้เล่น",
 
-        level: 1,
+    level: 1,
 
-        exp: 0,
+    exp: 0,
 
-        gold: 0,
+    gold: 0,
 
-        hp: 100,
+    hp: 100,
 
-        maxHp: 100,
+    maxHp: 100,
 
-        atk: 10
+    atk: 10,
 
-    };
+    inventory: []
+
+};
 
     socket.emit(
         "player_data",
@@ -156,25 +189,46 @@ io.on("connection", (socket) => {
 );
 
     socket.on(
-        "buy_sword",
-        () => {
+    "buy_item",
+    (itemId) => {
 
-            const player =
-                players[socket.id];
+        const player =
+            players[socket.id];
 
-            if(player.gold < 50)
-                return;
+        const item =
+            items[itemId];
 
-            player.gold -= 50;
-            player.atk += 5;
+        if(!item) return;
 
-            socket.emit(
-                "player_data",
-                player
-            );
+        if(player.gold < item.price)
+            return;
+
+        player.gold -= item.price;
+
+        player.inventory.push(item);
+
+        if(item.atk){
+            player.atk += item.atk;
+        }
+
+        if(item.heal){
+
+            player.hp += item.heal;
+
+            if(player.hp > player.maxHp){
+                player.hp =
+                    player.maxHp;
+            }
 
         }
-    );
+
+        socket.emit(
+            "player_data",
+            player
+        );
+
+    }
+);
 
 });
 
