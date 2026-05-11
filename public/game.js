@@ -264,7 +264,7 @@ socket.on("place_data", (data) => {
 
     }
 
-    if(data.type === "market"){
+   if(data.type === "market"){
 
     data.items.forEach(itemId => {
 
@@ -276,23 +276,53 @@ socket.on("place_data", (data) => {
 
         div.className = "monster";
 
-        let stats = "";
+        let stats = [];
 
         if(item.atk){
-            stats += `⚔ +${item.atk} `;
+            stats.push(
+                `⚔ โจมตี +${item.atk}`
+            );
+        }
+
+        if(item.hp){
+            stats.push(
+                `❤️ HP +${item.hp}`
+            );
         }
 
         if(item.heal){
-            stats += `❤️ +${item.heal}`;
+            stats.push(
+                `💚 ฟื้นฟู ${item.heal}`
+            );
+        }
+
+        if(item.def){
+            stats.push(
+                `🛡 ป้องกัน +${item.def}`
+            );
+        }
+
+        if(item.crit){
+            stats.push(
+                `💥 คริติคอล +${item.crit}%`
+            );
+        }
+
+        if(item.speed){
+            stats.push(
+                `💨 ความเร็ว +${item.speed}`
+            );
         }
 
         div.innerHTML = `
             <h3>${item.name}</h3>
 
-            <p>${stats}</p>
+            <p>
+                ${stats.join("<br>")}
+            </p>
 
             <p>
-            🪙 ${item.price}
+                🪙 ${item.price}
             </p>
 
             <button
