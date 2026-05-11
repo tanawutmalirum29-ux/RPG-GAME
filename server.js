@@ -140,8 +140,16 @@ function updatePlayerStats(player){
     player.atk =
         player.baseAtk;
 
+    player.maxHp = 100;
+
     const weapon =
         player.equipment.weapon;
+
+    const armor =
+        player.equipment.armor;
+
+    const accessory =
+        player.equipment.accessory;
 
     if(weapon){
 
@@ -152,6 +160,36 @@ function updatePlayerStats(player){
             player.atk += item.atk;
         }
 
+    }
+
+    if(armor){
+
+        const item =
+            items[armor];
+
+        if(item.hp){
+            player.maxHp += item.hp;
+        }
+
+    }
+
+    if(accessory){
+
+        const item =
+            items[accessory];
+
+        if(item.atk){
+            player.atk += item.atk;
+        }
+
+        if(item.hp){
+            player.maxHp += item.hp;
+        }
+
+    }
+
+    if(player.hp > player.maxHp){
+        player.hp = player.maxHp;
     }
 
 }
