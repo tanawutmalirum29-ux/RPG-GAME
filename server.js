@@ -18,22 +18,56 @@ const items = {
 
     wood_sword: {
         id: "wood_sword",
+        type: "weapon",
+
         name: "ดาบไม้",
+
         price: 50,
+
         atk: 5
     },
 
     iron_sword: {
         id: "iron_sword",
+        type: "weapon",
+
         name: "ดาบเหล็ก",
+
         price: 150,
+
         atk: 15
+    },
+
+    leather_armor: {
+        id: "leather_armor",
+        type: "armor",
+
+        name: "ชุดหนัง",
+
+        price: 120,
+
+        hp: 30
+    },
+
+    ring: {
+        id: "ring",
+        type: "accessory",
+
+        name: "แหวนพลัง",
+
+        price: 200,
+
+        atk: 3
     },
 
     potion: {
         id: "potion",
+        type: "usable",
+
         name: "ยาฟื้นฟู",
+
         price: 30,
+
         heal: 50
     }
 
@@ -91,13 +125,36 @@ const places = {
     type: "market",
 
     items: [
-        "wood_sword",
-        "iron_sword",
-        "potion"
-    ]
+    "wood_sword",
+    "iron_sword",
+    "leather_armor",
+    "ring",
+    "potion"
+]
 }
 
 };
+
+function updatePlayerStats(player){
+
+    player.atk =
+        player.baseAtk;
+
+    const weapon =
+        player.equipment.weapon;
+
+    if(weapon){
+
+        const item =
+            items[weapon];
+
+        if(item.atk){
+            player.atk += item.atk;
+        }
+
+    }
+
+}
 
 io.on("connection", (socket) => {
 
@@ -117,7 +174,17 @@ io.on("connection", (socket) => {
 
     atk: 10,
 
-    inventory: []
+    inventory: [],
+
+    equipment: {
+
+        weapon: null,
+
+        armor: null,
+
+        accessory: null
+
+    }
 
 };
 
@@ -205,20 +272,79 @@ io.on("connection", (socket) => {
 
         player.gold -= item.price;
 
-        player.inventory.push(item);
+        player.inventory.push(item.id);
+
+        socket.emit(
+            "player_data",
+            player
+        );
+
+    }
+);
+
+socket.on(
+    "equip_item",
+    (itemId) => {
+
+        const player =
+            players[socket.id];
+
+        if(
+            !player.inventory.includes(itemId)
+        ) return;
+
+        const item =
+            items[itemId];
 
         if(item.atk){
-            player.atk += item.atk;
+
+            player.equipment.weapon =
+                itemId;
+
         }
+
+        updatePlayerStats(player);
+
+        socket.emit(
+            "player_data",
+            player
+        );
+
+    }
+);
+
+socket.on(
+    "use_item",
+    (itemId) => {
+
+        const player =
+            players[socket.id];
+
+        const index =
+            player.inventory.indexOf(itemId);
+
+        if(index === -1)
+            return;
+
+        const item =
+            items[itemId];
 
         if(item.heal){
 
             player.hp += item.heal;
 
-            if(player.hp > player.maxHp){
+            if(player.hp >
+                player.maxHp){
+
                 player.hp =
                     player.maxHp;
+
             }
+
+            player.inventory.splice(
+                index,
+                1
+            );
 
         }
 
