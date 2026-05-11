@@ -111,48 +111,49 @@ io.on("connection", (socket) => {
     );
 
     socket.on(
-        "attack_monster",
-        (data) => {
+    "attack_monster",
+    (data) => {
 
-            const player =
-                players[socket.id];
+        const player =
+            players[socket.id];
 
-            const place =
-                places[data.place];
+        const place =
+            places[data.place];
 
-            if(!place) return;
+        if(!place || !place.monsters)
+            return;
 
-            const monster =
-                place.monsters.find(
-                    m => m.id === data.monsterId
-                );
-
-            if(!monster) return;
-
-            monster.hp -= player.atk;
-
-            if(monster.hp <= 0){
-
-                player.gold += monster.gold;
-                player.exp += monster.exp;
-
-                monster.hp =
-                    monster.maxHp;
-
-            }
-
-            socket.emit(
-                "player_data",
-                player
+        const monster =
+            place.monsters.find(
+                m => m.id === data.monsterId
             );
 
-            socket.emit(
-                "place_data",
-                place
-            );
+        if(!monster) return;
+
+        monster.hp -= player.atk;
+
+        if(monster.hp <= 0){
+
+            player.gold += monster.gold;
+            player.exp += monster.exp;
+
+            monster.hp =
+                monster.maxHp;
 
         }
-    );
+
+        socket.emit(
+            "player_data",
+            player
+        );
+
+        socket.emit(
+            "place_data",
+            place
+        );
+
+    }
+);
 
     socket.on(
         "buy_sword",
