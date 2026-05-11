@@ -11,6 +11,31 @@ const locationName =
 
 let currentPlace = "slime_field";
 
+const marketItems = {
+
+    wood_sword: {
+        id: "wood_sword",
+        name: "ดาบไม้",
+        price: 50,
+        atk: 5
+    },
+
+    iron_sword: {
+        id: "iron_sword",
+        name: "ดาบเหล็ก",
+        price: 150,
+        atk: 15
+    },
+
+    potion: {
+        id: "potion",
+        name: "ยาฟื้นฟู",
+        price: 30,
+        heal: 50
+    }
+
+};
+
 socket.on("player_data", (player) => {
 
     playerDiv.innerHTML = `
@@ -70,21 +95,48 @@ socket.on("place_data", (data) => {
 
     if(data.type === "market"){
 
-        contentDiv.innerHTML = `
-            <div class="monster">
+    data.items.forEach(itemId => {
 
-                <h3>🛒 ร้านค้า</h3>
+        const item =
+            marketItems[itemId];
 
-                <p>ดาบไม้ +5 ATK</p>
+        const div =
+            document.createElement("div");
 
-                <button onclick="buySword()">
-                    ซื้อ 50 Gold
-                </button>
+        div.className = "monster";
 
-            </div>
+        let stats = "";
+
+        if(item.atk){
+            stats += `⚔ +${item.atk} `;
+        }
+
+        if(item.heal){
+            stats += `❤️ +${item.heal}`;
+        }
+
+        div.innerHTML = `
+            <h3>${item.name}</h3>
+
+            <p>${stats}</p>
+
+            <p>
+            🪙 ${item.price}
+            </p>
+
+            <button
+            onclick="buyItem('${item.id}')">
+
+                ซื้อ
+
+            </button>
         `;
 
-    }
+        contentDiv.appendChild(div);
+
+    });
+
+}
 
 });
 
@@ -111,8 +163,11 @@ function attack(id){
 
 }
 
-function buySword(){
+function buyItem(id){
 
-    socket.emit("buy_sword");
+    socket.emit(
+        "buy_item",
+        id
+    );
 
 }
