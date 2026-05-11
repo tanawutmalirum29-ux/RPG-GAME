@@ -136,55 +136,76 @@ player.equipment.accessory
 
     player.inventory.forEach(itemId => {
 
-        const item =
-            marketItems[itemId];
+    const item =
+        marketItems[itemId];
 
-        const div =
-            document.createElement("div");
+    const div =
+        document.createElement("div");
 
-        div.className = "monster";
+    div.className = "monster";
 
-        let buttons = "";
+    let buttons = "";
 
-        if(item.atk){
+    // เช็คจาก type แทน atk
+    if(
+        item.type === "weapon" ||
+        item.type === "armor" ||
+        item.type === "accessory"
+    ){
 
-            buttons += `
-                <button
-                onclick="equipItem(
-                    '${item.id}'
-                )">
+        buttons += `
+            <button
+            onclick="equipItem(
+                '${item.id}'
+            )">
 
-                    สวมใส่
+                สวมใส่
 
-                </button>
-            `;
-
-        }
-
-        if(item.heal){
-
-            buttons += `
-                <button
-                onclick="useItem(
-                    '${item.id}'
-                )">
-
-                    ใช้
-
-                </button>
-            `;
-
-        }
-
-        div.innerHTML = `
-            <h3>${item.name}</h3>
-
-            ${buttons}
+            </button>
         `;
 
-        inventoryDiv.appendChild(div);
+    }
 
-    });
+    if(item.heal){
+
+        buttons += `
+            <button
+            onclick="useItem(
+                '${item.id}'
+            )">
+
+                ใช้
+
+            </button>
+        `;
+
+    }
+
+    let stats = "";
+
+    if(item.atk){
+        stats += `⚔ +${item.atk} `;
+    }
+
+    if(item.hp){
+        stats += `❤️ +${item.hp} `;
+    }
+
+    if(item.heal){
+        stats += `💚 ฟื้น ${item.heal}`;
+    }
+
+    div.innerHTML = `
+        <h3>${item.name}</h3>
+
+        <p>${stats}</p>
+
+        ${buttons}
+    `;
+
+    inventoryDiv.appendChild(div);
+
+});
 
 });
 
