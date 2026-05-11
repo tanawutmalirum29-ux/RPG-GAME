@@ -166,11 +166,13 @@ io.on("connection", (socket) => {
 
     exp: 0,
 
-    gold: 0,
+    gold: 9000,
 
     hp: 100,
 
     maxHp: 100,
+
+    baseAtk: 10,
 
     atk: 10,
 
@@ -187,6 +189,7 @@ io.on("connection", (socket) => {
     }
 
 };
+
 
     socket.emit(
         "player_data",
@@ -296,12 +299,17 @@ socket.on(
         const item =
             items[itemId];
 
-        if(item.atk){
+        if(item.type === "weapon"){
+    player.equipment.weapon = itemId;
+}
 
-            player.equipment.weapon =
-                itemId;
+if(item.type === "armor"){
+    player.equipment.armor = itemId;
+}
 
-        }
+if(item.type === "accessory"){
+    player.equipment.accessory = itemId;
+}
 
         updatePlayerStats(player);
 
