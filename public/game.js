@@ -1,57 +1,70 @@
 const socket = io();
 
 // ---- DOM refs ----
-const pName       = document.getElementById("pName");
-const pLevel      = document.getElementById("pLevel");
-const pAtk        = document.getElementById("pAtk");
-const pGold       = document.getElementById("pGold");
-const hpText      = document.getElementById("hpText");
-const hpBar       = document.getElementById("hpBar");
-const expText     = document.getElementById("expText");
-const expBar      = document.getElementById("expBar");
-const eWeapon     = document.getElementById("eWeapon");
-const eArmor      = document.getElementById("eArmor");
-const eAccessory  = document.getElementById("eAccessory");
-const contentDiv  = document.getElementById("content");
-const inventoryDiv= document.getElementById("inventory");
-const locationName= document.getElementById("locationName");
-const locationBadge=document.getElementById("locationBadge");
-const contentIcon = document.getElementById("contentIcon");
-const contentTitle= document.getElementById("contentTitle");
-const combatLog   = document.getElementById("combatLog");
+const pName        = document.getElementById("pName");
+const pLevel       = document.getElementById("pLevel");
+const pAtk         = document.getElementById("pAtk");
+const pGold        = document.getElementById("pGold");
+const hpText       = document.getElementById("hpText");
+const hpBar        = document.getElementById("hpBar");
+const expText      = document.getElementById("expText");
+const expBar       = document.getElementById("expBar");
+const eWeapon      = document.getElementById("eWeapon");
+const eArmor       = document.getElementById("eArmor");
+const eAccessory   = document.getElementById("eAccessory");
+const contentDiv   = document.getElementById("content");
+const inventoryDiv = document.getElementById("inventory");
+const marketDiv    = document.getElementById("market-content");
+const locationName = document.getElementById("locationName");
+const locationBadge= document.getElementById("locationBadge");
+const contentIcon  = document.getElementById("contentIcon");
+const contentTitle = document.getElementById("contentTitle");
+const combatLog    = document.getElementById("combatLog");
 
 let currentPlace = "slime_field";
 
 // ---- Item definitions ----
 const marketItems = {
-  wood_sword:    { id:"wood_sword",   type:"weapon",    name:"ดาบไม้",    icon:"🗡", price:50,  atk:5              },
-  iron_sword:    { id:"iron_sword",   type:"weapon",    name:"ดาบเหล็ก",  icon:"⚔", price:150, atk:15             },
-  leather_armor: { id:"leather_armor",type:"armor",     name:"ชุดหนัง",   icon:"🛡", price:120, hp:30              },
-  ring:          { id:"ring",         type:"accessory", name:"แหวนพลัง",  icon:"💍", price:200, atk:3              },
-  potion:        { id:"potion",       type:"usable",    name:"ยาฟื้นฟู",  icon:"🧪", price:30,  heal:50            },
+  wood_sword:    { id:"wood_sword",   type:"weapon",    name:"ดาบไม้",   icon:"🗡", price:50,  atk:5  },
+  iron_sword:    { id:"iron_sword",   type:"weapon",    name:"ดาบเหล็ก", icon:"⚔", price:150, atk:15 },
+  leather_armor: { id:"leather_armor",type:"armor",     name:"ชุดหนัง",  icon:"🛡", price:120, hp:30  },
+  ring:          { id:"ring",         type:"accessory", name:"แหวนพลัง", icon:"💍", price:200, atk:3  },
+  potion:        { id:"potion",       type:"usable",    name:"ยาฟื้นฟู", icon:"🧪", price:30,  heal:50},
 };
+const monsterEmoji = { "สไลม์":"🟢", "ก็อบลิน":"👺", "อัศวินต้องสาป":"💀" };
 
-const monsterEmoji = {
-  "สไลม์": "🟢",
-  "ก็อบลิน": "👺",
-  "อัศวินต้องสาป": "💀",
-};
+// ===================== MODAL SYSTEM =====================
+function openModal(id) {
+  document.getElementById(id).classList.add("open");
+  document.body.style.overflow = "hidden";
+}
+function closeModal(id) {
+  document.getElementById(id).classList.remove("open");
+  document.body.style.overflow = "";
+}
+function overlayClose(e, id) {
+  if(e.target === document.getElementById(id)) closeModal(id);
+}
 
-// ---- Log helper ----
+// ===================== BOTTOM BAR active state =====================
+function setBarActive(id) {
+  document.querySelectorAll(".bar-btn").forEach(b => b.classList.remove("active"));
+  const el = document.getElementById(id);
+  if(el) el.classList.add("active");
+}
+
+// ===================== LOG =====================
 function addLog(msg, cls="") {
   const line = document.createElement("div");
   line.className = "log-entry" + (cls ? " " + cls : "");
   line.innerHTML = msg;
   combatLog.appendChild(line);
-  // keep last 6 lines
   while(combatLog.children.length > 8) combatLog.removeChild(combatLog.firstChild);
   combatLog.scrollTop = combatLog.scrollHeight;
 }
-
-// ---- EXP needed per level ----
 function expNeeded(level) { return level * 20; }
 
-// ---- Render player ----
+// ===================== PLAYER DATA =====================
 socket.on("player_data", (player) => {
   pName.textContent  = player.name;
   pLevel.textContent = player.level;
@@ -65,13 +78,11 @@ socket.on("player_data", (player) => {
   expText.textContent = `${player.exp} / ${needed} EXP`;
   expBar.style.width  = `${Math.min(100,(player.exp/needed)*100)}%`;
 
-  // Equipment
   const emptyHTML = '<span class="slot-empty">— ว่างเปล่า —</span>';
-  eWeapon.innerHTML   = player.equipment.weapon    ? marketItems[player.equipment.weapon].name    : emptyHTML;
-  eArmor.innerHTML    = player.equipment.armor     ? marketItems[player.equipment.armor].name     : emptyHTML;
-  eAccessory.innerHTML= player.equipment.accessory ? marketItems[player.equipment.accessory].name : emptyHTML;
+  eWeapon.innerHTML    = player.equipment.weapon    ? marketItems[player.equipment.weapon].name    : emptyHTML;
+  eArmor.innerHTML     = player.equipment.armor     ? marketItems[player.equipment.armor].name     : emptyHTML;
+  eAccessory.innerHTML = player.equipment.accessory ? marketItems[player.equipment.accessory].name : emptyHTML;
 
-  // Inventory
   renderInventory(player);
 });
 
@@ -96,12 +107,10 @@ function renderInventory(player) {
     if(item.heal) stats = `💚 ฟื้นฟู ${item.heal}`;
 
     let actions = "";
-    if(item.type==="weapon"||item.type==="armor"||item.type==="accessory") {
+    if(item.type==="weapon"||item.type==="armor"||item.type==="accessory")
       actions += `<button class="btn btn-equip btn-sm" onclick="equipItem('${item.id}')">สวมใส่</button>`;
-    }
-    if(item.type==="usable") {
+    if(item.type==="usable")
       actions += `<button class="btn btn-use btn-sm" onclick="useItem('${item.id}')">ใช้</button>`;
-    }
 
     card.innerHTML = `
       <div class="inv-name">${item.icon} ${item.name}</div>
@@ -113,23 +122,17 @@ function renderInventory(player) {
   inventoryDiv.appendChild(grid);
 }
 
-// ---- Render place ----
+// ===================== PLACE DATA =====================
 socket.on("place_data", (data) => {
-  locationName.textContent = data.name;
-
   if(data.type === "monster") {
-    locationBadge.textContent = "⚔ ต่อสู้";
-    locationBadge.className = "location-badge";
-    contentIcon.textContent = "⚔";
-    contentTitle.textContent = "มอนสเตอร์";
+    locationName.textContent   = data.name;
+    locationBadge.textContent  = "⚔ ต่อสู้";
+    locationBadge.className    = "location-badge";
+    contentIcon.textContent    = "⚔";
+    contentTitle.textContent   = "มอนสเตอร์";
     renderMonsters(data.monsters);
   }
-
   if(data.type === "market") {
-    locationBadge.textContent = "🛒 ตลาด";
-    locationBadge.className = "location-badge market";
-    contentIcon.textContent = "🛒";
-    contentTitle.textContent = "สินค้า";
     renderMarket(data.items);
   }
 });
@@ -138,14 +141,12 @@ function renderMonsters(monsters) {
   contentDiv.innerHTML = "";
   const grid = document.createElement("div");
   grid.className = "monster-grid";
-
   monsters.forEach(monster => {
     const div = document.createElement("div");
     div.className = "monster-card";
     div.id = `monster-card-${monster.id}`;
-    const pct = Math.max(0, (monster.hp / monster.maxHp) * 100);
+    const pct   = Math.max(0,(monster.hp/monster.maxHp)*100);
     const emoji = monsterEmoji[monster.name] || "👾";
-
     div.innerHTML = `
       <div class="monster-avatar">${emoji}</div>
       <div class="monster-info">
@@ -162,22 +163,18 @@ function renderMonsters(monsters) {
 }
 
 function renderMarket(items) {
-  contentDiv.innerHTML = "";
+  marketDiv.innerHTML = "";
   const grid = document.createElement("div");
   grid.className = "item-grid";
-
   items.forEach(itemId => {
     const item = marketItems[itemId];
-    const div = document.createElement("div");
+    const div  = document.createElement("div");
     div.className = "item-card";
-
     let stats = [];
     if(item.atk)  stats.push(`⚔ โจมตี <span>+${item.atk}</span>`);
     if(item.hp)   stats.push(`❤ HP <span>+${item.hp}</span>`);
     if(item.heal) stats.push(`💚 ฟื้นฟู <span>${item.heal}</span>`);
-
-    let typeLabel = {weapon:"อาวุธ",armor:"เกราะ",accessory:"ประดับ",usable:"ของใช้"}[item.type]||"";
-
+    const typeLabel = {weapon:"อาวุธ",armor:"เกราะ",accessory:"ประดับ",usable:"ของใช้"}[item.type]||"";
     div.innerHTML = `
       <div class="item-top">
         <div class="item-icon">${item.icon}</div>
@@ -192,55 +189,47 @@ function renderMarket(items) {
     `;
     grid.appendChild(div);
   });
-  contentDiv.appendChild(grid);
+  marketDiv.appendChild(grid);
 }
 
-// ---- Listen for combat result ----
+// ===================== COMBAT RESULTS =====================
 socket.on("combat_result", (res) => {
-  if(res.type === "hit") {
-    addLog(`คุณโจมตี <b>${res.monsterName}</b> ดีเมจ <span class="log-dmg">${res.dmg}</span>`, "log-dmg");
-  }
-  if(res.type === "kill") {
-    addLog(`💀 <b>${res.monsterName}</b> ถูกสังหาร! ได้รับ <span class="log-kill">🪙${res.gold} | ⭐${res.exp} EXP</span>`, "log-kill");
-  }
-  if(res.type === "buy") {
-    addLog(`🛒 ซื้อ <span class="log-buy">${res.itemName}</span> สำเร็จ`, "log-buy");
-  }
-  if(res.type === "cant_afford") {
-    addLog(`❌ ทองไม่พอซื้อ ${res.itemName}`, "");
-  }
-  if(res.type === "heal") {
-    addLog(`💊 ใช้ ${res.itemName} ฟื้นฟู <span class="log-heal">+${res.amount} HP</span>`, "log-heal");
-  }
-  if(res.type === "equip") {
-    addLog(`✅ สวมใส่ <span class="log-buy">${res.itemName}</span>`, "log-buy");
-  }
-  if(res.type === "level_up") {
-    addLog(`🌟 <span class="log-kill">LEVEL UP! ขึ้นเป็น Lv.${res.level}</span>`, "log-kill");
-  }
+  if(res.type==="hit")         addLog(`คุณโจมตี <b>${res.monsterName}</b> ดีเมจ <span class="log-dmg">${res.dmg}</span>`);
+  if(res.type==="kill")        addLog(`💀 <b>${res.monsterName}</b> ถูกสังหาร! ได้รับ <span class="log-kill">🪙${res.gold} | ⭐${res.exp} EXP</span>`, "log-kill");
+  if(res.type==="buy")         addLog(`🛒 ซื้อ <span class="log-buy">${res.itemName}</span> สำเร็จ`, "log-buy");
+  if(res.type==="cant_afford") addLog(`❌ ทองไม่พอซื้อ ${res.itemName}`);
+  if(res.type==="heal")        addLog(`💊 ใช้ ${res.itemName} ฟื้นฟู <span class="log-heal">+${res.amount} HP</span>`, "log-heal");
+  if(res.type==="equip")       addLog(`✅ สวมใส่ <span class="log-buy">${res.itemName}</span>`, "log-buy");
+  if(res.type==="level_up")    addLog(`🌟 <span class="log-kill">LEVEL UP! ขึ้นเป็น Lv.${res.level}</span>`, "log-kill");
 });
 
-// ---- Actions ----
-function goPlace(place) {
+// ===================== ACTIONS =====================
+
+// เลือกสถานที่จาก map popup
+function selectPlace(place) {
   currentPlace = place;
-  document.querySelectorAll(".place-btn").forEach(b => b.classList.remove("active"));
-  const btn = document.getElementById("btn-" + place);
+  // update active in map popup
+  document.querySelectorAll(".map-place-btn").forEach(b => b.classList.remove("active"));
+  const btn = document.getElementById("mplace-" + place);
   if(btn) btn.classList.add("active");
+  // highlight map bar button
+  setBarActive("bar-map");
   socket.emit("go_place", place);
+  closeModal("map-modal");
 }
 
-function attack(id) {
-  socket.emit("attack_monster", { place: currentPlace, monsterId: id });
+// ตลาด
+function openMarket() {
+  socket.emit("go_place", "market");
+  setBarActive("bar-market");
+  openModal("market-modal");
 }
 
-function buyItem(id) {
-  socket.emit("buy_item", id);
-}
+function attack(id)    { socket.emit("attack_monster", { place: currentPlace, monsterId: id }); }
+function buyItem(id)   { socket.emit("buy_item", id); }
+function equipItem(id) { socket.emit("equip_item", id); }
+function useItem(id)   { socket.emit("use_item", id); }
 
-function equipItem(id) {
-  socket.emit("equip_item", id);
-}
-
-function useItem(id) {
-  socket.emit("use_item", id);
-}
+// ===================== INIT =====================
+// load initial place
+socket.emit("go_place", currentPlace);
